@@ -1,0 +1,25 @@
+#!/usr/bin/ruby -w
+#
+# $Id: help1,v 1.1 2008/04/27 22:21:52 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+h = Help.new( 'ResponseGroup', 'Large' )
+
+rg = ResponseGroup.new( 'Help' )
+
+req = Request.new
+req.locale = 'uk'
+
+resp = req.search( h, rg )
+help = resp.help_response[0].information.response_group_information
+
+printf( "The response group 'Large' was created on %s\n", help.creation_date )
+puts 'It can be used with the following operations:'
+puts help.valid_operations.operation.join( ', ' )
+puts
+puts "and causes the following elements to be returned:\n\n"
+puts help.elements.element

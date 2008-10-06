@@ -1,0 +1,27 @@
+#!/usr/bin/ruby -w
+#
+# $Id: customer_content_lookup1,v 1.3 2008/04/28 09:59:52 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+ccl = CustomerContentLookup.new( 'AJDWXANG1SYZP' )
+rg = ResponseGroup.new( 'CustomerReviews' )
+
+req = Request.new
+req.locale = 'us'
+
+resp = req.search( ccl, rg )
+
+review = resp.customer_content_lookup_response.customers.customer.customer_reviews.review[0]
+
+printf( "Customer's name is %s.\n", review.reviewer.name )
+printf( "Customer's location is %s.\n", review.reviewer.location )
+printf( "Review date is %s.\n", review.date )
+printf( "Review has received %s votes.\n", review.total_votes )
+printf( "Of these, %d deemed the review helpful.\n", review.helpful_votes )
+printf( "Product reviewed has ASIN '%s'.\n", review.asin )
+printf( "Review summary is: %s.\n", review.summary )
+printf( "Review content is:\n%s.\n", review.content )

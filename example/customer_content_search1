@@ -1,0 +1,21 @@
+#!/usr/bin/ruby -w
+#
+# $Id: customer_content_search1,v 1.1 2008/04/27 21:58:54 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+ccs = CustomerContentSearch.new( 'ian@caliban.org' )
+rg = ResponseGroup.new( 'CustomerInfo' )
+
+req = Request.new
+req.locale = 'us'
+
+resp = req.search( ccs, rg )
+cust = resp.customer_content_search_response.customers.customer
+
+printf( "Customer's ID is %s.\n", cust.customer_id )
+printf( "Customer's nickname is %s.\n", cust.nickname )
+printf( "Customer's location is %s.\n", cust.location.user_defined_location )

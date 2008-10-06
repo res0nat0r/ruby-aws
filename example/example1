@@ -1,0 +1,87 @@
+#!/usr/bin/ruby -w
+#
+# $Id: example1,v 1.4 2008/04/28 10:24:56 ianmacd Exp $
+
+require 'amazon/aws'
+require 'amazon/aws/search'
+
+# We don't want to have to fully qualify identifiers.
+#
+include Amazon::AWS
+include Amazon::AWS::Search
+
+# If you don't have one of these, don't pass the second argument to
+# Request.new.
+#
+ASSOCIATES_ID = "webservices-20"
+
+# Your access key ID.
+#
+KEY_ID        = "0Y44V8FAFNM119C6PTR2"
+
+request  = Request.new( KEY_ID, ASSOCIATES_ID )
+
+# Create an item search object.
+#
+# is = ItemSearch.new( 'Books', { 'Keywords' => 'ruby programming' } )
+is = ItemSearch.new( 'Books', { 'Title' => 'ruby programming' } )
+
+# Create a response group object. Examples of response groups are 'Small',
+# 'Medium' and 'Large'. 'Large' returns all data about an item.
+#
+rg = ResponseGroup.new( 'Large' )
+
+# Search for the items, passing the result into a block.
+#
+nr_items = 0
+page_nr = 0
+response = request.search( is, rg, :ALL_PAGES ) do |page|
+# page.item_search_response[0].items.each do |item_set|
+#   item_set.item.each do |item|
+#     puts 'Found a product:'
+#     item.instance_variables.each do |iv|
+#      printf( "%s = %s\n", iv, item.instance_variable_get( iv ) )
+#     end
+#   end
+# end
+ printf( "Page %d had unique request ID %s.\n",
+	  page_nr += 1,
+	  page.item_search_response[0].operation_request[0].request_id )
+  printf( "Page %d contained %d result(s).\n",
+	  page_nr,
+	  page.item_search_response[0].items[0].item.size )
+end
+
+# You don't have to access the items through a block.
+#
+nr_items = 0
+response.each do |page|
+    page.item_search_response[0].items.each do |item_set|
+      nr_items += item_set.item.size
+    end
+  end
+printf( "Search returned %d items.\n", nr_items )
+
+# The first item in the list.
+#
+items = response[0].item_search_response[0].items[0].item
+product1 = items[0]
+puts "\nProperties available for the first product returned:",
+  product1.properties.sort
+puts
+
+# There are three ways to retrieve the property of a product:
+#
+
+# Instance variable:
+#
+p product1.asin
+p product1.item_attributes[0].title
+
+# Feels more like a Hash:
+#
+p product1.item_attributes[0]['list_price'][0]['formatted_price']
+
+# A variation on the hash theme:
+#
+p product1.item_attributes[0][:author]

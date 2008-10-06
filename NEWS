@@ -1,0 +1,382 @@
+$Id: NEWS,v 1.14 2008/10/03 12:00:57 ianmacd Exp $
+
+
+0.4.4
+-----
+
+It's now possible to have Ruby/AWS use a user configuration file with a name
+other than .amazonrc. This is achieved by defining $AMAZONRCFILE. If left
+undefined, the default of .amazonrc is used.
+
+Locations other than $HOME were not being checked for .amazonrc. This bug has
+now been fixed.
+
+
+0.4.3
+-----
+
+$AMAZONRCDIR is now searched for .amazonrc before $HOME and the other
+directories. This allows a user-defined location to be used for the user
+configuration file.
+
+There is a new top-level class of exception for Ruby/AWS, Amazon::AmazonError.
+
+Most non-operational exceptions, such as Amazon::AWS::HTTPError,
+Amazon::Config::ConfigError, Amazon::AWS::Search::Request::AccessKeyIdError,
+Amazon::AWS::Search::Request::LocaleError and
+Amazon::AWS::ShoppingCart::CartError are now immediate subclasses of
+AmazonError. Previously, they were subclasses of StandardError.
+
+Amazon::AWS::Error::AWSError was previously a class that generated exceptions,
+but it's now simply a container class derived from AmazonError. All
+operational exceptions -- the ones whose class is dynamically created when AWS
+returns an error -- are now subclasses of AWSError. Previously, they were
+immediate subclasses of StandardError.
+
+This has the advantage of allowing all of the exceptions resulting from
+operational errors to be caught by rescuing just the container class,
+AWSError.
+       
+
+0.4.2
+-----
+
+The version of the Amazon AWS API requested when performing operations is now
+2008-08-19. This is the latest at the time of writing.
+
+The exception class Amazon::Config::ConfigError was mysteriously not defined.
+
+Amazon::Config.new now accepts an optional argument, config_str, which may
+contain the string equivalent of a config file's contents. When config_str is
+not nil (nil is the default), this string is read instead of /etc/amazonrc and
+~/.amazonrc. This addition is really just to aid unit-testing of the
+Amazon::Config class, as Amazon::Config.new never needs to be called by user
+code.
+
+Config file lines may now contain leading whitespace.
+
+The Amazon::AWS::MAX_PAGES constant has gone, replaced by the PAGINATION hash.
+Only ItemSearch should use ItemPage to page through results up to MAX_PAGES
+when ALL_PAGES has been requested, but the same approach was attempted for all
+types of operation.
+     
+Each operation has its own pagination parameter and its own maximum number of
+pages that can be fetched. This is now stored in the Amazon::AWS::PAGINATION
+hash.
+        
+Note that ItemLookup has three possible pagination parameters: OfferPage,
+VariationPage and ReviewPage. Ruby/AWS uses OfferPage for the purposes of
+ALL_PAGES.
+	   
+Operations that do not explicitly provide a pagination parameter (or, at
+least, those for which there isn't one listed in the AWS Developer's Guide)
+use ItemPage and pagination up to page 400. This is likely to throw an
+exception, as such operations almost certainly don't support multiple results
+pages.
+
+
+0.4.1
+-----
+
+The exception class Amazon::AWS::HTTPError was not actually defined, which
+caused an error when an attempt was made to raise it.
+
+If you're using Windows, %HOME% typically isn't defined. Therefore, the
+following sequence of paths is now searched for your .amazonrc configuration
+file:
+
+%HOME%
+%HOMEDRIVE% + %HOMEPATH%
+%USERPROFILE%
+
+Choose one of these at your convenience.
+
+The Ruby/AWS gem has been renamed ruby-aaws (from ruby-aws) to avoid a
+namespace clash with another project. This clash prevented remote installation
+of the gem.
+
+
+0.4.0
+-----
+
+The version of the Amazon AWS API requested when performing operations is now
+2008-06-26. This is the latest at the time of writing.
+
+A new method, Amazon::AWS::ShoppingCart::Cart#cart_get, has been added, to
+allow the retrieval of an existing shopping-cart from AWS. This is necessary
+when the original Cart object no longer exists.
+
+A bug in Amazon::AWS::ShoppingCart::Cart#cart_modify has been fixed, which
+caused carts with no items in their active section to raise an exception.
+
+
+0.3.3
+-----
+
+YAML.aws_load has been removed. Its functionality is available directly from
+Amazon::AWS::AWSObject.yaml_load and it wasn't logical or necessary to
+duplicate that in the YAML class itself. There was no corresponding
+Marshal.aws_load method, but if there had been, that, too, would have been
+removed.
+
+Ruby/AWS is finally available as a RubyGems package and can be found here:
+
+  http://www.caliban.org/files/ruby/ruby-aws-0.3.3.gem
+
+The enclosed Rakefile can be used to build the gem from scratch. First make
+sure you have rake and rubygems installed, and then simply type 'rake' in the
+top level directory of the archive. The gem will be generated and placed in
+the ./pkg subdirectory, from where you can 'sudo gem install' it.
+
+This is my first gem, so bear with me. It appears to work properly, but I
+offer no guarantees. One thing that doesn't currently work is installing the
+package with gem's -t option to run the supplied unit tests.
+
+More information about RubyGems can be found here:
+
+  http://www.rubygems.org/
+
+
+0.3.2
+-----
+
+Serialisation, e.g. with Marshal and YAML, has been a problem until now.
+  
+This is because subclasses of Amazon::AWS::AWSObject are created as needed
+when XML responses from AWS are parsed. Whilst there is no problem dumping
+objects instantiated from such classes, the difficulty arises when later
+loading and attempting to reinstantiate them in a new process, because the
+dynamic classes from which they were spawned no longer exist.
+
+The solution to the problem comes in the form of the new methods
+Amazon::AWS::AWSObject.load and Amazon::AWS::AWSObject.yaml_load. Use these as
+alternatives to Marshal.load and YAML.load, respectively.
+
+
+0.3.1
+-----
+
+This release mostly features refinements to the support for remote
+shopping-carts.
+
+The 'Save For Later' area of remote shopping-carts is now implemented.
+
+Cart#cart_modify now takes an extra parameter, save_for_later. If true, items
+are moved from the active to the Save For Later area of the cart. If false,
+they are moved in the opposite direction.
+
+In both cases, the quantity parameter is ignored, because attempting to pass
+it through to AWS results in an error, even though the AWS documentation
+claims this can be done to move partial quantities from one area of the cart
+to the other.
+
+Cart objects now have a @saved_for_later_items attribute, aliased to
+@saved_items and @saved. Take your pick.
+
+@cart_items is now set to [] when Cart.new is called. Previously, it wasn't set
+until Cart#cart_create was used, at which time it was set to nil.
+@saved_for_later_items is also set to [] by Cart.new.
+
+Cart#include? now also returns true if the item being queried is in the Save
+For Later area of the cart. Previously, only the active area was inspected.
+
+New methods, Cart#active? and Cart#saved_for_later? (alias Cart#saved?),
+return whether or not an item is present in a particular area of the cart. If
+the item is present, its CartItemId is returned; otherwise 'false'.
+
+A bug that caused shopping-cart transactions to use the cache if one was
+requested has been fixed. Shopping-carts should never use the cache under any
+circumstances.
+
+Request objects can now have their @cache attribute assigned to. A Cache
+object may be directly assigned to it, or you may assign the value 'true'. If
+@cache is set to 'true', a Cache object will automatically be assigned to it
+the next time @cache is referenced. This is most useful when one wishes to
+switch from using no cache to using one, or vice versa.
+
+Cache#flush_expired invariably threw an exception. This bug has been fixed.
+
+Geolocation of users by host and IP address now raises an
+Amazon::Locale::GeoError exception if the host or IP address is unresolvable.
+
+There's a new Ruby/AWS mailing-list for discussion of the development and
+usage of this library:
+
+  http://www.caliban.org/mailman/listinfo/ruby-aws
+
+
+0.3.0
+-----
+
+The version of the Amazon AWS API requested when performing operations is now
+2008-04-07. This is the latest at the time of writing.
+
+Remote shopping-carts are now implemented. See the Amazon::AWS::ShoppingCart
+module and the Amazon::AWS::ShoppingCart::Cart class in
+./amazon/aws/shoppingcart.rb for more details.
+
+Basically, the new methods are Cart.new, Cart#cart_create, Cart#cart_add,
+Cart#cart_modify and Cart#cart_clear. There's also Cart#each for iterating
+over the items in a cart.
+
+This adds the following AWS operations to the list of those supported:
+
+  CartCreate
+  CartAdd
+  CartModify
+  CartClear
+
+It's currently not possible to update a wishlist at purchase time by referring
+to the item's ListItemId when adding it to a cart.
+
+It's also currently not possible to add items to the 'Saved For Later' section
+of the cart.
+
+A new iterator method, AWSObject#each, yields each |property, value| of the
+AWSObject.
+
+The AWSObject and AWSArray classes have received a few new helper methods that
+should make AWSObject and single element AWSArray objects behave more akin to
+strings when they are being compared with strings, matched against regexes,
+etc.
+
+An otherwise undocumented method, AWSObject#kernel, provides unnested (i.e.
+top level) AWSObject objects with a shortcut reference to the data most likely
+of interest to the user.
+
+For example, if a top level AWSObject is formed as the result of an
+ItemSearch, one might normally refer to the items returned with something like
+this:
+
+  foo.item_search_response[0].items[0].item
+
+AWSObject#kernel allows the same data to be referred to as follows:
+
+  foo.kernel
+
+The path to the data is programatically determined, so this method only works
+for top level AWSObject objects created by a class of operation whose name can
+be used to derive the path. This is why this method is not documented.
+
+When searches are performed, greater efforts are now made to determine whether
+Amazon returned any errors. In particular, batch operations and
+MultipleOperations may return errors at different locations in the XML tree
+than normal operations.
+
+A bug that materialised only when using an HTTP proxy has been fixed.
+
+
+0.2.0
+-----
+
+In previous versions, only 5 types of operation were supported:
+
+  BrowseNodeLookup
+  ItemLookup
+  ItemSearch
+  ListSearch
+  SellerListingSearch
+
+This version supports all remaining non-shopping-cart operations:
+
+  CustomerContentLookup
+  CustomerContentSearch
+  Help
+  ListLookup
+  SellerListingSearch
+  SellerLookup
+  SimilarityLookup
+  TagLookup
+  TransactionLookup
+
+Examples of each of these can be found in ./examples/
+
+It is hoped that shopping-carts will make their debut in the next release of
+Ruby/AWS.
+
+One can now use a Symbol for search indices and hash keys when instantiating
+operation objects and response group objects.
+
+For example:
+
+  is = ItemSearch.new( 'Books', { 'Title' => 'Ruby' } )
+  rg = ResponseGroup.new( 'Large' )
+
+can now be written like this:
+
+  is = ItemSearch.new( :Books, { :Title => 'Ruby' } )
+  rg = ResponseGroup.new( :Large )
+
+It's up to you which form you use. The Symbol form saves one character. :-)
+
+AWSObject#to_s has been improved to provide something better looking. There's
+still room for improvement, though.
+
+AWSObject#to_i has been added. This allows, for example, AWSObjects to be used
+with the %d format specifier in formatted strings. It's up to you, though, to
+know when an AWSObject can be expected to contain a String that's usable as an
+Integer.
+
+Objects of a class whose name matches AWSObject::.*Image typically have a @url
+attribute that points to the URL of the image in question. Such objects now
+have a #get method, which can be used to retrieve the image in question. This
+method takes a single parameter, an integer precentage, which causes the
+retrieved image to be overlayed with a discount icon.
+
+Various compatibility fixes were made to allow Ruby/AWS to work under Ruby
+1.9. The use of Ruby/AWS with this version is still not recommended, however.
+For one thing, Ruby 1.9 seems to use #inspect in places that Ruby 1.8 used
+#to_s.
+
+
+0.1.0
+-----
+
+Version 0.1.0 of Ruby/AWS has undergone fundamental changes from the previous,
+very crude versions, 0.0.1 and 0.0.2.
+
+For one thing, the AWS XML parser has been completely rewritten. In this new
+version, classes are dynamically generated as required, based on the elements
+present in the XML pages returned by AWS.
+
+Previous versions of Ruby/AWS (and also Ruby/Amazon), manually defined most
+of these classes, based on Amazon's developer documentation and examination of
+AWS XML reponses. This time-consuming, unwieldy and unnecessary approach was
+largely the result of my own lack of aptitude with the Ruby REXML library.
+
+While these manually defined classes accounted for much of the data returned
+by AWS, a smaller section of the data was, nevertheless, dynamically converted
+to Ruby data structures. This mix of manually and automatically treated
+objects led to inconsistencies in the Ruby representation of the hierarchical
+XML structure. This meant that it was not quite possible to look at an AWS XML
+response and reliably determine how the resulting Ruby data structure would
+look.
+
+That inconsistency has been ironed out in version 0.1.0. As of now,
+_everything_ is dynamically generated from the AWS XML response. All manual
+class definitions have been removed and all classes are now defined at the
+time they first need to be instantiated.
+
+This has the following advantages:
+
+- Changes in the structure of AWS XML responses will not break Ruby/AWS. They
+  may break user code (if, for example, you depend on the presence of a piece
+  of data that later disappears from AWS responses [and even this should not
+  happen, because AWS v4 has a versioned API]), but they will not break the
+  library. The library will always create whichever classes are needed to
+  represent any given XML structure returned by AWS.
+
+- Changes in the structure of AWS XML that results in new data being
+  included in responses will automatically cause said data to be made
+  available via Ruby/AWS. If, for example, Amazon starts to return data about
+  the duration of each CD in their catalogue, perhaps using a <Duration> tag,
+  foo.duration would automatically start to return that property.
+
+- It should be faster, but I haven't verified this.
+
+Multiple operations are now supported.
+
+Geolocation of locale is now working.
+
+Documentation in this version has been radically improved, but is still
+lacking.

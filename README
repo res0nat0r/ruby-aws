@@ -1,0 +1,566 @@
+$Id: README,v 1.17 2008/10/03 12:00:19 ianmacd Exp $
+
+
+Introduction
+------------
+
+Ruby/AWS is a Ruby language library that makes it relatively easy for the
+programmer to retrieve information from the popular Amazon Web site via
+Amazon's Associates Web Services (AWS). In addition to the original amazon.com
+site, the local sites amazon.co.uk, amazon.de, amazon.fr, amazon.ca and
+amazon.co.jp are also supported.
+
+Development of Ruby/AWS has been quite swift since the appearance of the first
+alpha version, 0.0.1, in late March 2008. Although Ruby/AWS shares almost no
+code with its now obsolete predecessor, Ruby/Amazon, many lessons were learnt
+whilst developing that library, and the experience gained has been rolled into
+Ruby/AWS.
+
+As of version 0.3.0, I believe that Ruby/AWS has attained its goal of being
+superior to the final version of Ruby/Amazon, 0.9.2, which was released in
+August 2006.
+
+
+History and compatibility with Ruby/Amazon
+------------------------------------------
+
+In the beginning, there was Ruby/Amazon. This library was built around version
+3.x of the Amazon Web Service API and first saw the light of day in 2004. That
+version of the Amazon API was known at the time as AWS 3.x.
+
+Amazon later renamed AWS to ECS, or E-Commerce Service, for the launch of
+version 4 of the API, a complete overhaul that provided no backward
+compatibility with previous versions. The previous version of the API was
+thenceforth sometimes referred to as ECS 3.
+
+Demonstrating the wisdom and consistency for which large companies are
+globally revered, Amazon changed its mind once again in late 2007, reverting
+to the familiar name of AWS. This time, however, it was said to stand for
+Associates Web Service.
+
+Since Amazon started offering AWS, the number of Amazon Web APIs has grown.
+AWS is now just one of many. It is therefore no longer appropriate to call
+this library by a name so general as Ruby/Amazon, because it interfaces only
+with AWS. Therefore, the library will be known henceforth as Ruby/AWS.
+
+Ruby/AWS is built around version 4 of the Amazon AWS API, which is
+fundamentally different to version 3, both in terms of how requests are made
+and data returned. The underlying structure of the XML response is radically
+changed from previous versions.
+
+It has therefore not been possible in Ruby/AWS to retain any level of API
+compatibility with Ruby/Amazon. Unfortunately, this means that any code
+written for Ruby/Amazon will need to be rewritten to work with Ruby/AWS.
+
+One small piece of good news is that the /etc/amazonrc and ~/.amazonrc files
+used with Ruby/Amazon _are_ compatible with Ruby/AWS. The only change required
+for Ruby/AWS is the addition of a 'key_id' parameter, which should contain
+your AWS Access Key ID.
+
+Amazon finally decomissioned v3 of the AWS API on 2008-03-31. As a result, the
+original Ruby/Amazon library no longer functions.
+
+
+AWS Access Key ID
+-----------------
+
+You can obtain an AWS Access Key ID here:
+
+  https://aws-portal.amazon.com/gp/aws/developer/registration/index.html
+
+Subscription IDs are deprecated by Amazon and, in any case, not supported by
+Ruby/AWS. Please obtain and use an AWS Access Key ID instead.
+
+
+API version
+-----------
+
+Ruby/AWS currently requests the 2008-06-26 revision of the AWS API when
+performing its operations:
+
+  http://docs.amazonwebservices.com/AWSECommerceService/2008-03-03/DG/
+
+
+Status and functionality
+------------------------
+
+Ruby/AWS is currently alpha code. Amongst other things, this means:
+
+- You will probably encounter _many_ bugs. You will certainly encounter a few.
+  If you tell me about them, I will endeavour to fix them.
+
+- The documentation is incomplete, but steadily getting better. Version 0.0.1
+  had virtually none, so consider yourself lucky.
+
+- Not all features are currently implemented. Others may not be _fully_
+  implemented. Yet others may not be _properly_ implemented.
+
+  Nevertheless, the AWS v4 API is now more or less fully supported, with only
+  tiny gaps in the functionality of some operations.
+
+  Currently implemented operations are:
+  
+    BrowseNodeLookup
+    CustomerContentLookup
+    CustomerContentSearch
+    Help
+    ItemLookup
+    ItemSearch
+    ListLookup
+    ListSearch
+    SellerListingLookup
+    SellerListingSearch
+    SellerLookup
+    SimilarityLookup
+    TagLookup
+    TransactionLookup
+
+  Remote shopping-carts are also implemented as of version 0.3.0. The
+  following remote shopping-cart operations are supported:
+
+    CartCreate
+    CartAdd
+    CartModify
+    CartClear
+
+  Version 0.4.0 also adds:
+
+    CartGet
+
+  Multiple operations and batch requests are also supported, but not well
+  tested. Beware of bugs. There appear to also be (undocumented)
+  Amazon-imposed restrictions on the use of multiple operations and batch
+  requests, so some experimentation on your part will probably be required to
+  determine what works and what doesn't.
+  
+- Classes, methods, constants and instance variables may change name in the
+  future. These various objects may appear from nowhere, change shape, grow,
+  shrink or disappear entirely. Indeed, this has already happened once in the
+  evolution from version 0.0.2 to version 0.1.0, breaking existing code in the
+  process.
+
+In short, code written to work with this release of Ruby/AWS may stop working
+when you upgrade to the next release. In fact, it may even stop working
+_during_ this release, because it's possible there are circumstances that
+would cause an exception to be raised, that I haven't come across in my
+limited testing of the code.
+
+That said, the Ruby/AWS's API is pretty stable at this point in time. I won't
+break any of the method interfaces without seriously considering the merits of
+doing so.
+
+
+Installation
+------------
+
+Please see the INSTALL file for details of how to install Ruby/AWS. You can
+choose between an installation script and a RubyGems installation.
+
+
+Usage
+-----
+
+First of all, create either /etc/amazonrc or ~/.amazonrc. Its contents should
+look something like this:
+
+  key_id = '0Y44V8G41KCQPGF6PTR2'
+  associate = 'fuzbarorg-21'
+  locale = 'uk'
+  cache = false
+
+Because you're embedding your key ID in the file, you should protect it (on
+UNIX and equivalent systems) by making it mode 0600:
+
+$ chmod 600 ~/.amazonrc
+
+If you define 'cache' to be 'true', you may also define 'cache_dir' to point
+to somewhere other the default, /tmp/amazon.
+
+If you want to place .amazonrc somewhere other than $HOME, you may set
+$AMAZONRCDIR in the environment, as this location is checked prior to $HOME.
+
+If you're using Windows, $HOME is usually undefined, so a number of additional
+locations are checked for .amazonrc.
+
+The exact search order is as follows:
+
+$AMAZONRCDIR
+$HOME
+$HOMEDRIVE + $HOMEPATH
+$USERPROFILE
+
+Note that only the first defined location is used, so if, for example, both
+$AMAZONRCDIR and $HOME are defined, but only the path specified by $HOME
+contains a file called .amazonrc, it will not be found.
+
+If you want the user configuration file to be called something other than
+.amazonrc, you may define $AMAZONRCFILE in the environment.
+
+Once you have your configuration file, you can get started on your code.
+ 
+Here's some basic code, indicating how to perform an ItemSearch, probably the
+most common type of AWS operation. Please see the ./examples subdirectory for
+more examples of working code.
+
+--
+
+require 'amazon/aws/search'
+
+# Avoid having to fully qualify our methods.
+#
+include Amazon::AWS
+include Amazon::AWS::Search
+
+is = ItemSearch.new( 'Books', { 'Title' => 'Ruby' } )
+
+# I want to receive just a small amount of data for the items found.
+#
+rg = ResponseGroup.new( 'Small' )
+
+req = Request.new
+
+# Make sure I'm talking to amazon.co.uk.
+#
+req.locale = 'uk'
+
+# Actually talk to AWS.
+#
+resp = req.search( is, rg )
+
+# Drill down to the meat: the array of items returned.
+#
+items = resp.item_search_response[0].items[0].item
+
+# The following alternative shorthand would also have worked:
+#
+# items = resp.item_search_response.items.item
+
+# Available properties for first item:
+#
+puts items[0].properties
+
+items.each do |item|
+  attribs = item.item_attributes[0]
+  puts attribs.label
+  if attribs.list_price
+    puts attribs.title, attribs.list_price[0].formatted_price, ''
+  end
+end
+
+
+XML to Ruby mapping
+-------------------
+
+Here, I will discuss the mapping of the XML returned from AWS to native Ruby
+objects and data.
+
+When the following code:
+
+resp = req.search( is, rg )
+
+was called in the previous section, the following URL was composed and sent to
+AWS as an HTTP GET operation:
+
+http://ecs.amazonaws.co.uk/onca/xml?AWSAccessKeyId=01234567890123456789&AssociateTag=calibanorg-21&Operation=ItemSearch&ResponseGroup=Small&SearchIndex=Books&Service=AWSECommerceService&Title=Ruby&Version=2008-03-03
+
+The following (truncated) AWS XML response was received:
+
+<ItemSearchResponse>
+  <OperationRequest>
+    <HTTPHeaders>
+      <Header Name="UserAgent" Value="Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.1.13) Gecko/20080325 Fedora/2.0.0.13-1.fc7 Firefox/2.0.0.13"/>
+    </HTTPHeaders>
+    <RequestId>1TBGEZ48MF8KZ8TGXH65</RequestId>
+    <Arguments>
+      <Argument Name="SearchIndex" Value="Books"/>
+      <Argument Name="Service" Value="AWSECommerceService"/>
+      <Argument Name="ResponseGroup" Value="Small"/>
+      <Argument Name="Operation" Value="ItemSearch"/>
+      <Argument Name="Version" Value="2008-03-03"/>
+      <Argument Name="AssociateTag" Value="calibanorg-21"/>
+      <Argument Name="Title" Value="Ruby"/>
+      <Argument Name="AWSAccessKeyId" Value="01234567890123456789"/>
+    </Arguments>
+    <RequestProcessingTime>0.0671439170837402</RequestProcessingTime>
+  </OperationRequest>
+  <Items>
+    <Request>
+      <IsValid>True</IsValid>
+      <ItemSearchRequest>
+        <ResponseGroup>Small</ResponseGroup>
+        <SearchIndex>Books</SearchIndex>
+        <Title>Ruby</Title>
+      </ItemSearchRequest>
+    </Request>
+    <TotalResults>1804</TotalResults>
+    <TotalPages>181</TotalPages>
+    <Item>
+      <ASIN>0439943663</ASIN>
+      <DetailPageURL>
+http://www.amazon.co.uk/gp/redirect.html%3FASIN=0439943663%26tag=calibanorg-21%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0439943663%253FSubscriptionId=0Y44V8FAFNM119C6PTR2
+      </DetailPageURL>
+      <ItemAttributes>
+        <Author>Philip Pullman</Author>
+        <Manufacturer>Scholastic</Manufacturer>
+        <ProductGroup>Book</ProductGroup>
+        <Title>The Ruby in the Smoke (Sally Lockhart Quartet)</Title>
+      </ItemAttributes>
+    </Item>
+    <Item>
+      <ASIN>0596516177</ASIN>
+      ...
+
+In Ruby/AWS, each unique XML element name forms a class of the same name. All
+such classes are subclasses of AWSObject. For example, OperationRequest is a
+class, as is ItemAttributes.
+
+As the XML tree is traversed, each element is converted to an instance of the
+class of the same name. Every such object has instance variables, one per
+unique child element name. The name of the instance variable is translated to
+comply with Ruby convention by adding an underscore ('_') character at word
+boundaries and converting the name to lower case.
+
+For example, given the following XML:
+
+<ItemAttributes>
+   <Author>Philip Pullman</Author>
+   <Manufacturer>Scholastic</Manufacturer>
+   <ProductGroup>Book</ProductGroup>
+   <Title>The Ruby in the Smoke (Sally Lockhart Quartet)</Title>
+</ItemAttributes>
+
+the following statements would all be true:
+
+- ItemAttributes, Author, Manufacturer, ProductGroup and Title would all be
+  dynamically defined subclasses of AWSObject.
+
+- An instance of the ItemAttributes class would be instantiated, with instance
+  variables @author, @manufacturer, @product_group and @title.
+
+- To each of these instance variables would respectively be assigned an array
+  of Author objects, an array of Manufacturer objects, an array of
+  ProductGroup objects and an array of Title objects. In the above case, these
+  would all be single element arrays, because there's only one instance of
+  each kind of tag in the XML.
+
+- These lowest level objects would have no instance variables, because the
+  corresponding XML elements contain no children, just a value. These objects
+  are therefore directly assigned the value of the corresponding XML element.
+
+So, if resp is the top level AWSObject created and returned by calling
+Amazon::AWS::Search::Request#search on the Request object, and we'd like to
+know the ASIN of the first item found, we can refer to this as follows:
+
+  resp.item_search_response[0].items[0].item[0].asin
+
+Looking at each component of this chain in turn:
+
+- resp is an AWSObject with a single instance variable, @item_search_response.
+  This is because the entire XML response is contained within a single
+  <ItemSearchResponse> tag pair, so there's nothing else at the top level.
+
+- resp.item_search_response is assigned an array of ItemSearchResponse
+  objects. Because there's only a single <ItemSearchResponse> tag pair in the
+  whole document (containing the rest of the XML), the array contains only a
+  single element.
+
+- resp.item_search_response[0] has an instance variable, @items, which is
+  assigned an array of Items objects. Here again, only a single element is
+  created, because there's only one <Items> tag pair in the XML.
+
+- resp.item_search_response[0].items[0] has an instance variable, @item, which
+  is an array containing the item(s) returned by the search. It is a
+  multi-element array, however, because more than one item was found, as
+  represented by the multiple <Item> elements in the XML.
+
+The creation of so many single element arrays is unfortunate. It makes user
+code verboser, uglier and consequently harder to read.
+
+Some such arrays do, in fact, have the potential to be multi-element, because
+the corresponding XML tag _can_ appear multiple times in the AWS response. A
+book, for example, _may_ have more than one <Author>. Many other types of
+array, however, are necessarily single element arrays. The same book, for
+example, is unlikely to have more than one <Title>.
+
+As another concrete example, an ItemSearch will probably return many <Item>
+elements in the <ItemSearchResponse>, but these will invariably be nested in a
+single <Items> tag. The @items instance variable of the ItemSearchResponse
+object will therefore always have a size of 1.
+
+In other words, the following statements are always true when an ItemSearch
+successfully finds items:
+
+- resp.item_search_response[0].items.size == 1
+
+- resp.item_search_response[0].items[0].item.size >= 1
+
+The awkwardness of using such single element arrays is alleviated in Ruby/AWS
+by the use of the AWSArray subclass. This ever-so-slightly magic class of
+array allows element 0 of single-element arrays to be dereferenced using the
+base array name, i.e. without a subscript.
+
+In other words, a reference to foo.bar will actually return foo[0].bar, so
+long as foo.size == 1. Note that this only works because the array instance
+itself, foo, has no bar method, so the intention is unambiguous and foo can
+pass the call of bar down to foo[0]. foo.size, on the other hand, will
+_always_ refer to foo and never to foo[0], because Array#size _is_ an existing
+method.
+
+This allows the ASIN of the first item returned in the above XML to be
+referred to using the following shorthand:
+
+  resp.item_search_response.items.item[0].asin
+
+It's worth reiterating that it's still necessary to refer to item[0] using a
+subscript in this example, because the <Items> tag in the XML contains
+multiple <Item> tags, making item.size > 1.
+
+Use this syntactic shorthand to your advantage, but understand when you're
+likely to be dealing with a single element array and when a multiple. This
+will become apparent as you gain familiarity with AWS v4.
+
+An exception will be thrown if an unknown method is called on a multi-element
+array, as it can't be known which element the method invocation should be
+passed to. This will almost certainly be the result of an incorrect assumption
+that an array contains only a single element when it actually contains
+multiple.
+
+A further important detail to note is that not all AWS operations in the same
+class return the same data. For example, an ItemSearch using the Books search
+index will return items that, amongst other things, create an ItemAttributes
+object containing further objects of class Author, ISBN, etc. An ItemSearch
+using the DVD search index, however, will have no Author or ISBN, but _will_
+have a Director and probably one or more Actor objects.
+
+Because of the disparity in same-class object attributes, Ruby/AWS returns
+*nil* when an attempt is made to dereference a non-existent instance variable.
+This approach was chosen, because it often cannot be known in advance
+precisely which data will be returned by a given search. Returning *nil* for
+non-existent attributes means that the user does not have to pepper their code
+with exception-handling clauses.
+
+For example:
+
+resp.item_search_response[0].items[0].item[0].item_attributes.director
+
+will return *nil* for a book, because there was no corresponding Director
+element in the XML returned by AWS.
+
+Similarly:
+
+resp.item_search_response[0].items[0].item[0].item_attributes.foo_bar
+
+will _always_ return *nil* for any item, because no kind of ItemSearch will
+ever yield an item with a FooBar attribute.
+
+
+Parameter checking
+------------------
+
+There are many combinations of parameters and values that are legal for a
+particular type of search. For example, an ItemSearch can use a Sort parameter
+with a value of 'titlerank' if the SearchIndex is 'Books'. However, this value
+wouldn't make much sense in the 'Automotive' SearchIndex.
+
+The very presence of a certain parameter can be illegal in a certain contexts.
+For example, specifying the parameter 'Author' with any value would be
+nonsensical in the 'PetSupplies' SearchIndex.
+
+To complicate things further, the validity of parameters and their values
+differs not only by search type, but also by Amazon locale (amazon.com,
+amazon.co.uk, amazon.de, etc.) and is prone to change with each minor revision
+of the Amazon AWS API.
+
+Even worse, even the operations themselves can be illegal in some locales.
+TransactionLookup operations, for example, don't currently work in the UK
+locale, but do work in the US locale.
+
+Ruby/Amazon attempted to track these complex and dynamic relationships to
+prevent illegal or ineffective operations from being attempted. It was a
+time-consuming and tedious task to track the evolving API (which often changed
+in subtle ways without prior [or even belated] notice from Amazon), find all
+of the corner cases and handle undocumented quirks.
+
+With the highly dynamic nature of the Amazon environment, plus the sheer
+number of operations, parameters, possible legal values and locales in the AWS
+v4 API, this strict approach must track too many combinations and permutations
+to be practical. Ruby/AWS therefore no longer tries.
+
+Instead, it's now up to you to ensure that you perform legal operations and
+pass in sensible parameters and values for the locale in which you're working.
+
+Parameter name checking, however, _is_ still performed. For example,
+performing an ItemSearch and passing in a 'Keywrds' parameter would generate
+an exception, because 'Keywrds' doesn't exist as a parameter in any context.
+Here, 'Keywords' was obviously what was intended and a simple typo was made by
+the user.
+
+Similarly, the SearchIndex must also actually exist, so 'Music' or 'Beauty'
+would be valid, but 'Furniture' or 'MobilePhones' would not, because Amazon
+does not (currently) offer such indices.
+
+In conclusion, we can say that broad checks are performed to determine whether
+a search _could_ conceivably be valid in any context, but it's up to you to
+determine whether the search actually _is_ valid in your particular context.
+
+Thankfully, with the AWS Developer Guide at your side, it's largely common
+sense which parameters and values can be used with each type of search. It's
+less obvious when these differ by locale, such as 'Beauty' being a valid
+SearchIndex in the 'us' locale, bot not in the 'uk'. AWS unfortunately abounds
+with such inconsistencies.
+
+The only way to apprise yourself of such quirks is to read Amazon's latest
+developer documentation (and closely follow the release notes of each minor
+API revision to make sure things haven't changed).
+
+The AWS Developer Connection pages may also be of use to you. In particular,
+the forum for discussing AWS has proved useful to me over the years:
+
+  http://developer.amazonwebservices.com/connect/forum.jspa?forumID=9
+
+For those illegal operations that make it through and are passed to the Amazon
+servers, the good news is that Amazon carries out extensive request-time
+parameter checking in AWS v4 (much better than in v3) and will generate an
+error when an illegal set of parameters and values is given. Ruby/AWS will
+dynamically generate an exception class for the reported type of error and
+raise an exception of that class.
+
+Using this approach, Ruby/AWS doesn't have to perform checks that Amazon will
+perform later anyway. This helps keep the code base leaner, the library
+faster, and reduces the chances of Ruby/AWS disallowing operations that will
+one day be allowed in a minor revision of AWS.
+
+
+Documentation
+-------------
+
+You can generate HTML documentation for the library with the following
+command, executed from the directory created when you unpacked the archive:
+
+  rdoc -SUx CVS lib
+
+The documentation on how to use this library is currently incomplete, but that
+is steadily being remedied.
+
+You can also use the Ruby/AWS mailing-list:
+
+  http://www.caliban.org/mailman/listinfo/ruby-aws
+
+to discuss all Ruby/AWS-related subjects and issues.
+
+
+Examples
+--------
+
+The ./examples subdirectory contains working examples of code.
+
+
+Licence
+-------
+
+This software is copyright (C) 2008 Ian Macdonald and distributed under the
+terms of the GNU GENERAL PUBLIC LICENSE, a copy of which is included.
+
+-- 
+Ian Macdonald
+<ian@caliban.org>

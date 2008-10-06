@@ -1,0 +1,30 @@
+#!/usr/bin/ruby -w
+#
+# $Id: list_search1,v 1.3 2008/04/11 19:24:24 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+person = 'Peter Duff'
+
+ls = ListSearch.new( 'WishList', { 'Name' => person } )
+ls_rg = ResponseGroup.new( 'ListInfo' )
+
+req = Request.new
+req.locale = 'us'
+
+resp = req.search( ls, ls_rg )
+lists = resp.list_search_response[0].lists[0].list
+
+puts '%s returns the following lists:' % [ person ]
+
+lists.each do |list|
+  puts '  %s' % [ list.customer_name ]
+  puts '  List created: %s' % [ list.date_created ]
+  puts '  List ID: %s' % [ list.list_id ]
+  puts '  URL: %s' % [ list.list_url ]
+  puts '  %s items on list.' % [ list.total_items ]
+  puts
+end

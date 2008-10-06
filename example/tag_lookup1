@@ -1,0 +1,34 @@
+#!/usr/bin/ruby -w
+#
+# $Id: tag_lookup1,v 1.1 2008/04/27 19:46:43 ianmacd Exp $
+
+require 'amazon/aws'
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+tag_str = 'Awful'
+tl = TagLookup.new( tag_str )
+
+# You can have multiple response groups.
+#
+rg = ResponseGroup.new( 'Tags', 'TagsSummary' )
+
+req = Request.new
+req.locale = 'us'
+
+resp = req.search( tl, rg )
+tag = resp.tag_lookup_response.tags.tag
+
+printf( "Tag name '%s' has %d distinct items.\n", tag_str, tag.distinct_items )
+printf( "Tag has %d distinct items.\n", tag.distinct_users )
+printf( "Tag has %d total usages.\n", tag.total_usages )
+printf( "Tagged for the first time in entity %s on %s\nby %s..\n",
+        tag.first_tagging.entity_id,
+	tag.first_tagging.time,
+	tag.first_tagging.user_id )
+printf( "Tagged for the last time in entity %s on %s\nby %s..\n",
+        tag.last_tagging.entity_id,
+	tag.last_tagging.time,
+	tag.last_tagging.user_id )

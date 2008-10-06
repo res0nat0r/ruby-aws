@@ -1,0 +1,30 @@
+#!/usr/bin/ruby -w
+#
+# $Id: item_search1,v 1.4 2008/04/11 19:24:24 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+is = ItemSearch.new( 'Books', { 'Title' => 'Ruby' } )
+rg = ResponseGroup.new( 'Large' )
+
+req = Request.new
+req.locale = 'uk'
+
+resp = req.search( is, rg )
+
+items = resp.item_search_response[0].items[0].item
+
+# Available properties for first item:
+#
+puts items[0].properties
+
+items.each do |item|
+  attribs = item.item_attributes[0]
+  puts attribs.label
+  if attribs.list_price
+    puts attribs.title, attribs.list_price[0].formatted_price, ''
+  end
+end

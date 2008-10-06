@@ -1,0 +1,37 @@
+#!/usr/bin/ruby -w
+#
+# $Id: item_search2,v 1.4 2008/04/28 09:59:39 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+# We can use symbols instead of string.
+#
+is = ItemSearch.new( :Music, { :Artist => 'Stranglers' } )
+rg = ResponseGroup.new( :Medium )
+
+req = Request.new
+req.locale = 'uk'
+
+resp = req.search( is, rg, :ALL_PAGES )
+
+# Use of :ALL_PAGES means an array of responses is returned, one per page.
+#
+items = resp.collect { |r| r.item_search_response[0].items[0].item }.flatten
+
+printf( "Search returned %d items.\n", items.size )
+
+items.each do |item|
+  attribs = item.item_attributes[0]
+  puts '%s %s' % [ attribs.title, ( attribs.format ?
+				      "(#{attribs.format})" : '' ) ]
+  puts '%s (%s)' % [ attribs.manufacturer, attribs.binding ]
+  puts 'Release date: %s' % [ attribs.release_date ]
+  puts attribs.list_price[0].formatted_price if attribs.list_price
+  if item.editorial_reviews
+    puts item.editorial_reviews[0].editorial_review[0].content
+  end
+  puts
+end

@@ -1,0 +1,28 @@
+#!/usr/bin/ruby -w
+#
+# $Id: seller_listing_search1,v 1.4 2008/04/28 10:00:28 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+seller_id = 'AP8U6Y3PYQ9VO'
+artist = 'Killing Joke'
+sls = SellerListingSearch.new( seller_id, { 'Keywords' => artist } )
+sls_rg = ResponseGroup.new( 'SellerListing' )
+
+req = Request.new
+req.locale = 'uk'
+
+resp = req.search( sls, sls_rg )
+
+# Yawn. This is verbose.
+#
+seller_id = resp.seller_listing_search_response[0].seller_listings[0].
+	    request[0].seller_listing_search_request[0].seller_id
+items = resp.seller_listing_search_response[0].seller_listings[0].
+	seller_listing
+
+puts 'Seller %s is selling the following items by %s:' % [ seller_id, artist ]
+items.each { |item| puts item, '-' * 80 }

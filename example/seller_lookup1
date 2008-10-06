@@ -1,0 +1,45 @@
+#!/usr/bin/ruby -w
+#
+# $Id: seller_lookup1,v 1.1 2008/04/27 10:10:07 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+def display_properties(root, indent=0)
+  if root[0].respond_to? :properties
+    printf( 'Property %s =', root[0] )
+    root[0].properties.each do |pr|
+      display_properties( pr, indent + 2 )
+    end
+  else
+    printf( "Property %s = %s.\n", root, root.to_h[root] )
+  end
+end
+  
+sl = SellerLookup.new( 'A3QFR0K2KCB7EG' )
+sl_rg = ResponseGroup.new( 'Seller' )
+
+req = Request.new
+req.locale = 'us'
+
+resp = req.search( sl, sl_rg ).seller_lookup_response
+
+seller = resp.sellers.seller
+
+seller.properties.each do |pr|
+  if seller[0][pr][0].properties.empty?
+    printf( "%s = %s.\n", pr, seller[0][pr] )
+  else
+    seller[0][pr][0].properties.each do |nest1|
+      if seller[0][pr][0][nest1][0].properties.empty?
+        printf( "%s = %s.\n", nest1, seller[0][pr][0][nest1][0] )
+      else
+	seller[0][pr][0][nest1][0].properties.each do |nest2|
+          printf( "%s = %s.\n", nest2, seller[0][pr][0][nest1][0][nest2] )
+	end
+      end
+    end
+  end
+end

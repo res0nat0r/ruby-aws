@@ -1,0 +1,46 @@
+#!/usr/bin/ruby -w
+#
+# $Id: browse_node_lookup1,v 1.3 2008/04/11 19:24:24 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+# This is the node for Social Sciences.
+#
+START_NODE = '11232'
+
+def follow_node(id)
+
+  req ||= Request.new
+  req.locale = 'us'
+
+  bnl = BrowseNodeLookup.new( id, {} )
+  bnl_rg ||= ResponseGroup.new( 'BrowseNodeInfo' )
+  resp = req.search( bnl, bnl_rg )
+
+  #items = resp.browse_node_sets.browse_nodes
+  nodes = resp.browse_node_lookup_response[0].browse_nodes[0].browse_node
+
+  nodes.each do |bn|
+
+    if bn.children
+      puts '%s (%s) has the following children:' % [ bn.name, id ]
+
+      bn.children[0].browse_node.each do |child_node|
+        puts '  %s' % [ child_node.name ]
+      end
+      puts
+
+      bn.children[0].browse_node.each do |child_node|
+        follow_node( child_node.browse_node_id )
+      end
+
+    else
+      puts '%s (%s) has no children.' % [ bn.name, id ]
+    end
+  end
+end
+
+follow_node( START_NODE )

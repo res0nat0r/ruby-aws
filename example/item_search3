@@ -1,0 +1,23 @@
+#!/usr/bin/ruby -w
+#
+# $Id: item_search3,v 1.3 2008/04/11 19:24:24 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+is = ItemSearch.new( 'Baby', { 'Keywords' => 'pants',
+		               'MinimumPrice' => '2500',
+			       'MaximumPrice' => '4999' } )
+rg = ResponseGroup.new( 'Small' )
+
+req = Request.new
+req.locale = 'us'
+
+resp = req.search( is, rg )
+items = resp.item_search_response[0].items[0].item
+
+printf( "Search returned %d items.\n", items.size )
+
+items.each { |item| puts item, '' }

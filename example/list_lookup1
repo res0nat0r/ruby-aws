@@ -1,0 +1,29 @@
+#!/usr/bin/ruby -w
+#
+# $Id: list_lookup1,v 1.1 2008/04/27 16:36:14 ianmacd Exp $
+
+require 'amazon/aws/search'
+
+include Amazon::AWS
+include Amazon::AWS::Search
+
+ll = ListLookup.new( '3P722DU4KUPCP', 'Listmania' )
+ll_rg = ResponseGroup.new( 'ListInfo', 'Small' )
+
+req = Request.new
+req.locale = 'us'
+
+resp = req.search( ll, ll_rg )
+list = resp.list_lookup_response[0].lists[0].list
+
+puts 'List Title: %s' % [ list.list_name ]
+puts 'List created: %s' % [ list.date_created ]
+puts 'List ID: %s' % [ list.list_id ]
+puts 'URL: %s' % [ list.list_url ]
+puts '%s items on list.' % [ list.total_items ]
+puts
+
+list.list_item.each_with_index do |it, idx|
+  att = it.item.item_attributes
+  printf( "%d. %s (%s)\n", idx + 1, att.title, att.product_group )
+end

@@ -1,0 +1,42 @@
+#!/usr/bin/ruby -w
+#
+# $Id: shopping_cart1,v 1.2 2008/06/06 13:31:40 ianmacd Exp $
+
+require 'amazon/aws/search'
+require 'amazon/aws/shoppingcart'
+
+include Amazon::AWS
+#include Amazon::AWS::Search
+include Amazon::AWS::ShoppingCart
+
+cart = Cart.new
+cart.locale = 'uk'
+
+cart.cart_create( :ASIN, 'B00151HZA6', 3, false,
+		  { 'B000WC4AH0' => 2 ,
+		    'B000PY32OM' => 8 } )
+
+puts cart.cart_id
+puts cart.hmac
+puts cart.purchase_url
+puts
+
+cart.cart_add( :ASIN, 'B0014C2BL4', 1,
+	       { 'B00006BCKL' => 5 },
+	       { 'B000VVE2UW' => 4 } )
+cart.cart_add( :ASIN, 'B0013F2M52', 3 )
+cart.cart_add( :ASIN, 'B000HCPSR6', 5 )
+cart.cart_modify( :ASIN, 'B00151HZA6', 2, true,
+		  { 'B0013F2M52' => 1 },
+		  { 'B000HCPSR6' => 3 } )
+
+puts 'Cart contents:'
+cart.each do |it|
+  puts "ASIN: %s, item Id: %-14s, quantity: %d" %
+    [ it.asin, it.cart_item_id, it.quantity ]
+end
+puts
+
+puts cart.items
+
+cart.cart_clear
